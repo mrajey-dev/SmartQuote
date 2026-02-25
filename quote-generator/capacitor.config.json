@@ -1,0 +1,8 @@
+{
+  "appId": "com.quote.app",
+  "appName": "QuoteApp",
+  "webDir": "dist",
+  "android": {
+    "handleBackButton": true
+  }
+}
