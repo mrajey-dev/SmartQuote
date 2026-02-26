@@ -110,8 +110,14 @@ onMounted(() => {
   fetchCompany()
 })
 const getBase64FromUrl = async (url) => {
-  const response = await fetch(url)
-  const blob = await response.blob()
+
+  const fetchResponse = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+
+  const blob = await fetchResponse.blob()
 
   return new Promise((resolve) => {
     const reader = new FileReader()
@@ -130,10 +136,21 @@ const shareQuotation = async (quotationId) => {
     const quotation = response.data
 
     const doc = new jsPDF()
+    try {
+  const res = await api.get('/company/logo')
+  const logoBase64 = res.data.base64
+
+  doc.addImage(logoBase64, 'PNG', 18, 18, 18, 18)
+
+} catch (err) {
+  console.log("Logo load failed", err)
+}
     // OUTER PAGE BORDER
 doc.setDrawColor(0)
 doc.setLineWidth(0.8)
 doc.roundedRect(5, 5, 200, 287, 3, 3)
+
+
     let startY = 20
 
     /* ==============================
@@ -166,16 +183,17 @@ doc.roundedRect(14, 14, 110, 37, 2, 2, "S")
 doc.setFontSize(18)
 doc.setFont("helvetica", "bold")
 doc.setTextColor(...primaryColor)
-doc.text(company.value.company_name || "", 18, 24)
+
+doc.text(company.value.company_name || "", 40, 24)
 
 // ===== COMPANY DETAILS =====
 doc.setFontSize(10)
 doc.setFont("helvetica", "normal")
 doc.setTextColor(80)
 
-doc.text(company.value.address || "", 18, 30)
-doc.text(`Phone: ${company.value.phone || ""}`, 18, 35)
-doc.text(`Email: ${company.value.email || ""}`, 18, 40)
+doc.text(company.value.address || "", 40, 30)
+doc.text(`Phone: ${company.value.phone || ""}`, 40, 35)
+doc.text(`Email: ${company.value.email || ""}`, 40, 40)
 
 // ===== QUOTATION TITLE =====
 doc.setFontSize(20)
@@ -247,32 +265,17 @@ doc.setFontSize(10)
 doc.setTextColor(60)
 
 // ===== LEFT SIDE - CUSTOMER =====
-doc.text(
-  `Name: ${quotation.customer?.customer_name || quotation.customer_name || ""}`,
-  leftBoxX + 4,
-  contentYLeft
-)
-contentYLeft += lineHeight
+const customer = quotation.customer || {};
+doc.text(`Name: ${customer.customer_name || ""}`, leftBoxX + 4, contentYLeft);
+contentYLeft += lineHeight;
 
-doc.text(
-  `Company: ${quotation.customer?.company_name || ""}`,
-  leftBoxX + 4,
-  contentYLeft
-)
-contentYLeft += lineHeight
+doc.text(`Company: ${customer.company_name || ""}`, leftBoxX + 4, contentYLeft);
+contentYLeft += lineHeight;
 
-doc.text(
-  `Phone: ${quotation.customer?.phone || ""}`,
-  leftBoxX + 4,
-  contentYLeft
-)
-contentYLeft += lineHeight
+doc.text(`Phone: ${customer.phone || ""}`, leftBoxX + 4, contentYLeft);
+contentYLeft += lineHeight;
 
-doc.text(
-  `Email: ${quotation.customer?.email || ""}`,
-  leftBoxX + 4,
-  contentYLeft
-)
+doc.text(`Email: ${customer.email || ""}`, leftBoxX + 4, contentYLeft);
 
 // ===== RIGHT SIDE - COMPANY TAX =====
 doc.text(
@@ -292,56 +295,64 @@ doc.text(
 startY = sectionTopY + boxHeight + 12
 
 /* ==============================
-       ITEM TABLE
-    ============================== */
+   ITEM TABLE
+============================== */
 
-    doc.setFontSize(12)
-    doc.setFont("helvetica", "bold")
-    doc.setTextColor(...primaryColor)
-    doc.text("Item Details", 14, startY)
+doc.setFontSize(12)
+doc.setFont("helvetica", "bold")
+doc.setTextColor(...primaryColor)
+doc.text("Item Details", 14, startY)
 
-    startY += 8
+startY += 8
 
-    // Table Header
-    doc.setFillColor(...primaryColor)
-    doc.rect(14, startY - 6, 182, 10, "F")
+// Table Header
+doc.setFillColor(...primaryColor)
+doc.rect(14, startY - 6, 182, 10, "F")
 
-    doc.setTextColor(255)
-    doc.setFontSize(10)
-    doc.setFont("helvetica", "bold")
+doc.setTextColor(255)
+doc.setFontSize(9)
+doc.setFont("helvetica", "bold")
 
-    doc.text("Product", 16, startY)
-    doc.text("Qty", 110, startY, { align: "right" })
-    doc.text("Price", 135, startY, { align: "right" })
-    doc.text("Disc%", 160, startY, { align: "right" })
-    doc.text("GST%", 185, startY, { align: "right" })
+doc.text("S.No", 16, startY)
+doc.text("Product", 26, startY)
+doc.text("Qty", 85, startY, { align: "right" })
+doc.text("Unit", 100, startY, { align: "right" })
+doc.text("Price", 120, startY, { align: "right" })
+doc.text("Disc%", 145, startY, { align: "right" })
+doc.text("GST%", 165, startY, { align: "right" })
+doc.text("Total", 185, startY, { align: "right" })
 
-    startY += 10
+startY += 10
 
-    doc.setFont("helvetica", "normal")
-    doc.setTextColor(50)
+doc.setFont("helvetica", "normal")
+doc.setTextColor(50)
+doc.setFontSize(9)
 
-    quotation.items.forEach(item => {
+quotation.items.forEach((item, index) => {
 
-      doc.setDrawColor(220)
-      doc.rect(14, startY - 5, 182, 8)
+  doc.setDrawColor(220)
+  doc.rect(14, startY - 5, 182, 8)
 
-      doc.text(String(item.product_name), 16, startY)
-      doc.text(String(item.quantity), 110, startY, { align: "right" })
-      doc.text(`Rs. ${Number(item.price).toFixed(2)}`, 135, startY, { align: "right" })
-      doc.text(`${Number(quotation.discount_percent || 0)}%`, 160, startY, { align: "right" })
-      doc.text(`${Number(quotation.gst_percent || 0)}%`, 185, startY, { align: "right" })
+  // ✅ Serial Number
+  doc.text(String(index + 1), 16, startY)
 
-      startY += 8
+  doc.text(String(item.product_name), 26, startY)
+  doc.text(String(item.quantity), 85, startY, { align: "right" })
+  doc.text(String(item.unit || "-"), 100, startY, { align: "right" })
+  doc.text(`Rs. ${Number(item.price).toFixed(2)}`, 120, startY, { align: "right" })
+  doc.text(`${Number(item.discount_percent || 0)}%`, 145, startY, { align: "right" })
+  doc.text(`${Number(item.gst_percent || 0)}%`, 165, startY, { align: "right" })
+  doc.text(`Rs. ${Number(item.total || 0).toFixed(2)}`, 185, startY, { align: "right" })
 
-      if (startY > 270) {
-        doc.addPage()
-        startY = 20
-      }
-    })
+  startY += 8
 
-    startY += 10
+  if (startY > 270) {
+    doc.addPage()
+    startY = 20
+  }
+})
 
+startY += 10
     /* ==============================
    PAYMENT DETAILS + TOTAL
 ============================== */
@@ -414,8 +425,8 @@ doc.roundedRect(
 
 startY = paymentBoxStartY + paymentSectionHeight + 8
 
-    /* ==============================
-   TERMS & CONDITIONS
+   /* ==============================
+   TERMS & CONDITIONS (DYNAMIC)
 ============================== */
 
 // Save top position
@@ -433,23 +444,24 @@ startY += 8
 doc.setFont("helvetica", "normal")
 doc.setTextColor(80)
 
-const terms = [
-  "1. Goods once sold will not be taken back.",
-  "2. Payment should be made within 7 days.",
-  "3. GST will be charged as applicable.",
-  "4. Subject to local jurisdiction."
-]
+// 👉 Dynamic terms from API / DB
+// Example: company.terms
+const termsText = company.value?.terms || "GST will be charged as applicable"
 
-// Print terms
-terms.forEach(term => {
-  doc.text(term, leftMargin + padding, startY)
+// Convert multi-line string into array
+const termsArray = termsText.split('\n')
+
+// Print terms dynamically
+termsArray.forEach((term, index) => {
+  const line = `${index + 1}. ${term.trim()}`
+  doc.text(line, leftMargin + padding, startY)
   startY += 6
 })
 
-// Calculate total height dynamically
+// Calculate box height AFTER text rendering
 const boxHeighttc = startY - termsTopY + padding
 
-// Draw rectangle AFTER calculating height
+// Draw rectangle
 doc.setDrawColor(200)
 doc.roundedRect(
   leftMargin,
@@ -647,21 +659,13 @@ const printQuotation = (quotation) => {
             ${
               quotation.items && quotation.items.length
               ? quotation.items.map(item => `
-                <tr>
-                  <td>${item.name}</td>
-                  <td>${item.qty}</td>
-                  <td>Rs. ${Number(item.price).toFixed(2)}</td>
-                 <td>Rs. ${
-  (() => {
-    const base = item.qty * item.price
-    const discount = base * ((item.discount || 0) / 100)
-    const afterDiscount = base - discount
-    const gst = afterDiscount * ((item.gst || 0) / 100)
-    return (afterDiscount + gst).toFixed(2)
-  })()
-}</td>
-                </tr>
-              `).join("")
+  <tr>
+    <td>${item.product_name}</td>
+    <td>${item.quantity}</td>
+    <td>Rs. ${Number(item.price).toFixed(2)}</td>
+    <td>Rs. ${Number(item.total).toFixed(2)}</td>
+  </tr>
+`).join("")
               : `<tr><td colspan="4">No items found</td></tr>`
             }
           </tbody>
@@ -676,12 +680,12 @@ const printQuotation = (quotation) => {
 
           <div class="total-row">
             <span>Discount</span>
-            <span>- Rs. ${Number(quotation.discount_amount || 0).toFixed(2)}</span>
+            <span>- Rs. ${Number(quotation.total_discount_amount || 0).toFixed(2)}</span>
           </div>
 
           <div class="total-row">
             <span>GST</span>
-            <span>Rs. ${Number(quotation.gst_amount || 0).toFixed(2)}</span>
+            <span>Rs. ${Number(quotation.total_gst_amount || 0).toFixed(2)}</span>
           </div>
 
           <div class="total-row grand">

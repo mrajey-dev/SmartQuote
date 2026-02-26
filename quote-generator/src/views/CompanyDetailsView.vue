@@ -35,7 +35,15 @@
     <div class="input">
       <input v-model="form.pan_number" :placeholder="$t('panNumber')" />
     </div>
+<!-- Terms & Conditions -->
+<h3 class="section-title">Terms & Conditions</h3>
 
+<div class="input">
+  <textarea
+    v-model="form.terms"
+    placeholder="Enter terms & conditions"
+  ></textarea>
+</div>
     <!-- Contact Info -->
     <h3 class="section-title">{{ $t('contactInformation') }}</h3>
 
@@ -107,7 +115,8 @@ const form = ref({
   bank_name: '',
   account_number: '',
   ifsc_code: '',
-  upi_id: ''
+  upi_id: '',
+   terms: 'GST will be charged as applicable'
 })
 
 const handleLogo = (event) => {
@@ -144,7 +153,8 @@ onMounted(async () => {
         bank_name: response.data.bank_name || '',
         account_number: response.data.account_number || '',
         ifsc_code: response.data.ifsc_code || '',
-        upi_id: response.data.upi_id || ''
+        upi_id: response.data.upi_id || '',
+         terms: response.data.terms || 'GST will be charged as applicable.'
       }
 
       // Show existing logo

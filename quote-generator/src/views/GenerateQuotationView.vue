@@ -301,8 +301,7 @@ const saveQuotation = async () => {
     // 🔥 Calculate totals properly
     let totalDiscountAmount = 0
     let totalGSTAmount = 0
-    let totalDiscountPercent = 0
-    let totalGSTPercent = 0
+ 
 
     items.value.forEach(item => {
       const base = (item.qty || 0) * (item.price || 0)
@@ -314,26 +313,30 @@ const saveQuotation = async () => {
 
       totalDiscountAmount += discountAmount
       totalGSTAmount += gstAmount
-
-      totalDiscountPercent += Number(item.discount || 0)
-      totalGSTPercent += Number(item.gst || 0)
     })
 
     await api.post("/quotations", {
-      customer_name: finalCustomer,
+  customer_name: finalCustomer,
 
-      subtotal: subtotal.value,
+  subtotal: subtotal.value,
 
-      discount_percent: totalDiscountPercent,
-      discount_amount: totalDiscountAmount,
+  // ✅ ONLY TOTAL AMOUNTS AT QUOTATION LEVEL
+  total_discount_amount: totalDiscountAmount,
+  total_gst_amount: totalGSTAmount,
 
-      gst_percent: totalGSTPercent,
-      gst_amount: totalGSTAmount,
+  grand_total: grandTotal.value,
 
-      grand_total: grandTotal.value,
-
-      items: items.value
-    })
+  // ✅ ITEM-LEVEL TAX & DISCOUNT
+  items: items.value.map(item => ({
+    name: item.name,
+    qty: item.qty,
+    unit: item.unit,
+    customUnit: item.customUnit,
+    price: item.price,
+    discount: item.discount || 0, // % PER ITEM
+    gst: item.gst || 0            // % PER ITEM
+  }))
+})
 
     alert("Quotation generated successfully")
 
