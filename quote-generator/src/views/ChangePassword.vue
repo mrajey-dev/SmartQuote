@@ -135,7 +135,7 @@ const changePassword = async () => {
 .phone {
   width: 100%;
   height: 100%;
-  background: #0F6F73;
+  background: var(--primary);
 }
 
 .top {
@@ -174,7 +174,7 @@ const changePassword = async () => {
 .primary-btn {
   width: 100%;
   padding: 12px;
-  background: #0F6F73;
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 20px;
@@ -199,6 +199,6 @@ const changePassword = async () => {
   text-align: center;
   font-size: 13px;
   cursor: pointer;
-  color: #0F6F73;
+  color: var(--primary);
 }
 </style>

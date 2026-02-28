@@ -17,16 +17,27 @@
         <div v-if="isLogin" class="form">
           <h2>Login</h2>
 
-          <div class="input">
-            <i class="icon">✉</i>
-            <input type="email" placeholder="Email" v-model="email" />
-          </div>
+       <div class="input">
+  <i class="icon">✉</i>
+  <input 
+    type="email" 
+    placeholder="Email" 
+    v-model="email"
+    @blur="validateEmail"
+  />
+</div>
+<p class="error" v-if="errors.email">{{ errors.email }}</p>
 
-          <div class="input">
-            <i class="icon">🔒</i>
-            <input type="password" placeholder="Password" v-model="password" />
-          </div>
-
+         <div class="input">
+  <i class="icon">🔒</i>
+  <input 
+    type="password" 
+    placeholder="Password" 
+    v-model="password"
+    @blur="validatePassword"
+  />
+</div>
+<p class="error" v-if="errors.password">{{ errors.password }}</p>
           <div class="forgot">Forgot Password</div>
 
           <button class="primary-btn" @click="login">
@@ -51,25 +62,55 @@
           <div class="back" @click="toggle">← Back to login</div>
           <h2>Sign Up</h2>
 
-          <div class="input">
+<div class="input">
   <i class="icon">✉</i>
-  <input type="email" placeholder="Email" v-model="email" />
+  <input 
+    type="email" 
+    placeholder="Email" 
+    v-model="email"
+    @blur="validateEmail"
+  />
 </div>
+<p class="error" v-if="errors.email">{{ errors.email }}</p>
 
 <div class="input">
   <i class="icon">🔒</i>
-  <input type="password" placeholder="Password" v-model="password" />
+  <input 
+    type="password" 
+    placeholder="Password" 
+    v-model="password"
+    @blur="validatePassword"
+  />
 </div>
+<p class="error" v-if="errors.password">{{ errors.password }}</p>
 
 <div class="input">
   <i class="icon">🔒</i>
-  <input type="password" placeholder="Confirm Password" v-model="confirmPassword" />
+  <input 
+    type="password" 
+    placeholder="Confirm Password" 
+    v-model="confirmPassword"
+    @blur="validateConfirmPassword"
+  />
 </div>
+<p class="error" v-if="errors.confirmPassword">
+  {{ errors.confirmPassword }}
+</p>
 
 <div class="input">
   <i class="icon">📱</i>
-  <input type="text" placeholder="Phone" v-model="phone" />
+  <input 
+    type="text"
+    inputmode="numeric"
+    pattern="[0-9]*"
+    maxlength="10"
+    placeholder="Phone"
+    v-model="phone"
+    @input="handlePhoneInput"
+    @blur="validatePhone"
+  />
 </div>
+<p class="error" v-if="errors.phone">{{ errors.phone }}</p>
 
       <button 
   class="primary-btn" 
@@ -91,9 +132,17 @@ import { useRouter } from "vue-router"
 import axios from "axios"
 
 const router = useRouter()
-
+const errors = ref({
+  email: "",
+  password: "",
+  confirmPassword: "",
+  phone: ""
+})
 const API = "https://products.archenterprises.co.in/api"
-
+const handlePhoneInput = (e) => {
+  // Allow only digits and limit to 10 numbers
+  phone.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+}
 const isLogin = ref(true)
 const email = ref("")
 const password = ref("")
@@ -104,12 +153,50 @@ const loading = ref(false)
 const toggle = () => {
   isLogin.value = !isLogin.value
 }
-
-const login = async () => {
-  if (!email.value || !password.value) {
-    alert("Enter email and password")
-    return
+const validateEmail = () => {
+  if (!email.value) {
+    errors.value.email = "Email is required"
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    errors.value.email = "Invalid email format"
+  } else {
+    errors.value.email = ""
   }
+}
+
+const validatePassword = () => {
+  if (!password.value) {
+    errors.value.password = "Password is required"
+  } else if (password.value.length < 6) {
+    errors.value.password = "Password must be at least 6 characters"
+  } else {
+    errors.value.password = ""
+  }
+}
+
+const validateConfirmPassword = () => {
+  if (!confirmPassword.value) {
+    errors.value.confirmPassword = "Confirm your password"
+  } else if (confirmPassword.value !== password.value) {
+    errors.value.confirmPassword = "Passwords do not match"
+  } else {
+    errors.value.confirmPassword = ""
+  }
+}
+
+const validatePhone = () => {
+  if (!phone.value) {
+    errors.value.phone = "Phone number is required"
+  } else if (!/^[0-9]{10}$/.test(phone.value)) {
+    errors.value.phone = "Phone must be 10 digits"
+  } else {
+    errors.value.phone = ""
+  }
+}
+const login = async () => {
+  validateEmail()
+  validatePassword()
+
+  if (errors.value.email || errors.value.password) return
 
   try {
     loading.value = true
@@ -122,7 +209,7 @@ const login = async () => {
     localStorage.setItem("token", res.data.token)
     localStorage.setItem("user", JSON.stringify(res.data.user))
 
-    router.push("/company")
+    router.push("/home")
 
   } catch (err) {
     alert(err.response?.data?.message || "Login failed")
@@ -132,15 +219,17 @@ const login = async () => {
 }
 
 const register = async () => {
-  if (!email.value || !password.value || !confirmPassword.value || !phone.value) {
-    alert("Fill all fields")
-    return
-  }
+  validateEmail()
+  validatePassword()
+  validateConfirmPassword()
+  validatePhone()
 
-  if (password.value !== confirmPassword.value) {
-    alert("Passwords do not match")
-    return
-  }
+  if (
+    errors.value.email ||
+    errors.value.password ||
+    errors.value.confirmPassword ||
+    errors.value.phone
+  ) return
 
   try {
     loading.value = true
@@ -154,7 +243,7 @@ const register = async () => {
     localStorage.setItem("token", res.data.token)
     localStorage.setItem("user", JSON.stringify(res.data.user))
 
-    router.push("/home")
+    router.push("/company")
 
   } catch (err) {
     alert(err.response?.data?.message || "Registration failed")
@@ -182,7 +271,7 @@ const register = async () => {
 .phone {
   width: 100%;
   height: 100%;
-  background: #0F6F73;
+  background: var(--primary);
   border-radius: 0px;
   overflow: hidden;
   position: relative;
@@ -219,7 +308,7 @@ const register = async () => {
 }
 
 .form h2 {
-  color: #0F6F73;
+  color: var(--primary);
   margin-bottom: 20px;
 }
 
@@ -248,7 +337,7 @@ const register = async () => {
 .forgot {
   text-align: right;
   font-size: 12px;
-  color: #0F6F73;
+  color: var(--primary);
   margin-bottom: 15px;
   cursor: pointer;
 }
@@ -258,7 +347,7 @@ const register = async () => {
   padding: 12px;
   border-radius: 25px;
   border: none;
-  background: #0F6F73;
+  background: var(--primary);
   color: white;
   font-weight: 500;
   margin-bottom: 20px;
@@ -302,7 +391,7 @@ const register = async () => {
 }
 
 .bottom-text span {
-  color: #0F6F73;
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
 }
@@ -310,7 +399,7 @@ const register = async () => {
 .back {
   font-size: 13px;
   margin-bottom: 10px;
-  color: #0F6F73;
+  color: var(--primary);
   cursor: pointer;
 }
 
@@ -324,5 +413,14 @@ const register = async () => {
 .primary-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+.error {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-left: 5px;
+}input:invalid,
+input.error-border {
+  border: 1px solid #ff4d4f;
 }
 </style>

@@ -33,3 +33,38 @@ a,
     padding: 0 2rem;
   }
 }
+
+:root {
+  --primary: #0796a6; /* default blue */
+  --primary-dark: #1e40af;
+}
+
+/* Red Theme */
+.theme-pink {
+  --primary: #a6073f;
+  --primary-dark: #991b1b;
+}
+
+/* Blue Theme */
+.theme-blue {
+  --primary: #0796a6;
+  --primary-dark: #1e40af;
+}
+
+/* green Theme */
+.theme-green {
+  --primary: #07a675;
+  --primary-dark: #1e40af;
+}
+
+/* green Theme */
+.theme-red {
+  --primary: #e74141;
+  --primary-dark: #1e40af;
+}
+
+/* Black Theme */
+.theme-black {
+  --primary: #111827;
+  --primary-dark: #000000;
+}

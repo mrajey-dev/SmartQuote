@@ -25,12 +25,17 @@
     </div>
 
     <!-- Show input if Add New Selected -->
-    <div v-if="selectedCustomer === '__new__'" class="input">
-      <input 
-        v-model="manualCustomer" 
-        :placeholder="$t('enterCustomerName')" 
-      />
-    </div>
+  <div v-if="selectedCustomer === '__new__'" class="input">
+  <input 
+    v-model="manualCustomer"
+    maxlength="50"
+    :placeholder="$t('enterCustomerName')" 
+  />
+</div>
+
+<p class="error" v-if="customerError">
+  {{ customerError }}
+</p>
 
     <!-- ================= PRODUCTS ================= -->
     <h3 class="section-title">{{ $t('products') }}</h3>
@@ -50,22 +55,27 @@
 
       <!-- Product Name -->
       <div class="autocomplete">
-        <input
-          v-model="item.name"
-          @input="searchProducts(item)"
-          :placeholder="$t('enterProductName')"
-        />
+  <input
+    v-model="item.name"
+    maxlength="100"
+    @input="searchProducts(item)"
+    :placeholder="$t('enterProductName')"
+  />
 
-        <ul v-if="item.suggestions.length" class="suggestions">
-          <li
-            v-for="(suggestion, i) in item.suggestions"
-            :key="i"
-            @click="item.name = suggestion.product_name; item.suggestions = []"
-          >
-            {{ suggestion.product_name }}
-          </li>
-        </ul>
-      </div>
+  <ul v-if="item.suggestions.length" class="suggestions">
+    <li
+      v-for="(suggestion, i) in item.suggestions"
+      :key="i"
+      @click="item.name = suggestion.product_name; item.suggestions = []"
+    >
+      {{ suggestion.product_name }}
+    </li>
+  </ul>
+</div>
+
+<p class="error" v-if="itemErrors[index]?.name">
+  {{ itemErrors[index].name }}
+</p>
 
       <!-- UNIT -->
       <div class="row">
@@ -109,21 +119,27 @@
 
       <!-- Discount & GST -->
       <div class="row">
-        <input
-          type="number"
-          v-model.number="item.discount"
-          :placeholder="$t('discountPercent')"
-        />
+  <input
+    type="number"
+    min="0"
+    max="100"
+    v-model.number="item.discount"
+    :placeholder="$t('discountPercent')"
+    @input="limitPercent(item, 'discount')"
+  />
 
-        <input
-          type="number"
-          v-model.number="item.gst"
-          :placeholder="$t('gstPercent')"
-        />
-      </div>
+  <input
+    type="number"
+    min="0"
+    max="100"
+    v-model.number="item.gst"
+    :placeholder="$t('gstPercent')"
+    @input="limitPercent(item, 'gst')"
+  />
+</div>
 
       <div class="item-total">
-        {{ $t('total') }}: ₹ {{ itemTotal(item).toFixed(2) }}
+        {{ $t('total') }}: {{ currencySymbol }} {{ itemTotal(item).toFixed(2) }}
       </div>
     </div>
 
@@ -135,17 +151,17 @@
     <div class="summary-card">
       <div class="summary-row">
         <span>{{ $t('subtotal') }}</span>
-        <span>₹ {{ subtotal.toFixed(2) }}</span>
+      <span>{{ currencySymbol }} {{ subtotal.toFixed(2) }}</span>
       </div>
 
       <div class="summary-row">
         <span>{{ $t('totalGST') }}</span>
-        <span>₹ {{ totalGST.toFixed(2) }}</span>
+       <span>{{ currencySymbol }} {{ totalGST.toFixed(2) }}</span>
       </div>
 
       <div class="summary-row total">
         <span>{{ $t('grandTotal') }}</span>
-        <span>₹ {{ grandTotal.toFixed(2) }}</span>
+       <span>{{ currencySymbol }} {{ grandTotal.toFixed(2) }}</span>
       </div>
     </div>
 
@@ -164,10 +180,29 @@ import api from "@/services/api"
 import { useRouter } from "vue-router"
 /* ================= CUSTOMER ================= */
 
+const customerError = ref("")
+const itemErrors = ref([]) // array for each product row
 const selectedCustomer = ref("")
 const manualCustomer = ref("")
 const customers = ref([])
 const company = ref(null)
+const currencySymbols = {
+  INR: "₹",
+  USD: "$",
+  EUR: "€",
+  JPY: "¥"
+}
+const limitPercent = (item, field) => {
+  if (item[field] === null || item[field] === undefined) return
+
+  if (item[field] < 0) {
+    item[field] = 0
+  }
+
+  if (item[field] > 100) {
+    item[field] = 100
+  }
+}
 const router = useRouter()
 onMounted(async () => {
   try {
@@ -180,7 +215,52 @@ onMounted(async () => {
     console.error("Error loading data", error)
   }
 })
+const validateQuotation = () => {
+  let valid = true
 
+  customerError.value = ""
+  itemErrors.value = []
+
+  // 🔹 CUSTOMER VALIDATION
+  const finalCustomer =
+    selectedCustomer.value === "__new__"
+      ? manualCustomer.value
+      : selectedCustomer.value
+
+  if (!finalCustomer || !finalCustomer.trim()) {
+    customerError.value = "Customer name is required"
+    valid = false
+  } else if (finalCustomer.length > 50) {
+    customerError.value = "Maximum 50 characters allowed"
+    valid = false
+  }
+
+  // 🔹 PRODUCT VALIDATION
+  items.value.forEach((item, index) => {
+    let errors = {}
+
+    if (!item.name || !item.name.trim()) {
+      errors.name = "Product name is required"
+      valid = false
+    } else if (item.name.length > 100) {
+      errors.name = "Maximum 100 characters allowed"
+      valid = false
+    }
+
+    itemErrors.value[index] = errors
+  })
+
+  return valid
+}
+// ---------------------------currency----------------------
+
+const currencySymbol = computed(() => {
+  if (!company.value || !company.value.currency) {
+    return "₹" // default fallback
+  }
+
+  return currencySymbols[company.value.currency] || "₹"
+})
 /* ================= UNITS ================= */
 
 const units = [
@@ -286,6 +366,9 @@ const grandTotal = computed(() =>
 /* ================= SAVE ================= */
 
 const saveQuotation = async () => {
+    if (!validateQuotation()) {
+    return
+  }
   try {
 
     const finalCustomer =
@@ -356,7 +439,7 @@ const saveQuotation = async () => {
   margin: 20px 0 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #0F6F73;
+  color: var(--primary);
 }
 
 /* Input Style */
@@ -372,6 +455,7 @@ const saveQuotation = async () => {
 border: none;
     background: #ffffff;
     outline: none;
+    color: var(--primary);
     width: 100%;
     border-radius: 9px;
     padding: 11px;
@@ -401,7 +485,7 @@ border: none;
   margin-top: 8px;
   font-size: 12px;
   font-weight: 500;
-  color: #0F6F73;
+  color: var(--primary);
 }
 
 /* Add Button */
@@ -409,9 +493,9 @@ border: none;
   width: 100%;
   padding: 10px;
   border-radius: 20px;
-  border: 1px dashed #0F6F73;
+  border: 1px dashed var(--primary);
   background: transparent;
-  color: #0F6F73;
+  color: var(--primary);
   margin-bottom: 20px;
   cursor: pointer;
   transition: 0.3s;
@@ -425,6 +509,7 @@ border: none;
 .summary-card {
   background: #F0F4F4;
   padding: 15px;
+  color: var(--primary);
   border-radius: 20px;
   margin-bottom: 15px;
 }
@@ -433,13 +518,14 @@ border: none;
   display: flex;
   justify-content: space-between;
   font-size: 13px;
+  columns: var(--primary);
   margin-bottom: 6px;
 }
 
 .summary-row.total {
-  font-weight: 600;
+  font-weight: 800!important;
   font-size: 15px;
-  color: #0F6F73;
+  color: var(--primary);
 }
 
 /* Button */
@@ -448,7 +534,7 @@ border: none;
   padding: 14px;
   border-radius: 25px;
   border: none;
-  background: linear-gradient(135deg, #0F6F73, #0C5C60);
+  background: var(--primary);
   color: white;
   font-size: 14px;
   font-weight: 500;
@@ -470,7 +556,7 @@ border: none;
   flex: 1;
   padding: 8px;
   border-radius: 15px;
-  border: 1px solid #0F6F73;
+  border: 1px solid var(--primary);
   background: white;
   cursor: pointer;
 }
@@ -488,6 +574,7 @@ border: none;
   padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid #d6e2e2;
+  color: var(--primary);
   background: #f8fbfb;
   font-size: 13px;
   outline: none;
@@ -506,7 +593,7 @@ border: none;
 .input input:focus,
 .input select:focus,
 .input textarea:focus {
-  border-color: #0F6F73;
+  border-color: var(--primary);
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(15, 111, 115, 0.15);
 }
@@ -546,7 +633,7 @@ border: none;
       position: absolute;
     top: -4px;
     right: -3px;
-    background: #0f6f73;
+    background: var(--primary);
     border: none;
     border-radius: 91px;
     height: 23px;
@@ -569,9 +656,9 @@ border: none;
   /* flex: 1; */
   /* padding: 14px; */
   border-radius: 25px;
-  border: 1px solid #0F6F73;
+  border: 1px solid var(--primary);
   background: white;
-  color: #0F6F73;
+  color: var(--primary);
   width: 100%;
   /* font-size: 14px; */
   cursor: pointer;
@@ -585,6 +672,7 @@ border: none;
 .product-card select {
   width: 100%;
   padding: 11px 14px;
+  color: var(--primary);
   border-radius: 12px;
   border: 1px solid #d6e2e2;
   background: #ffffff;
@@ -609,7 +697,7 @@ border: none;
 
 /* Focus */
 .product-card select:focus {
-  border-color: #0F6F73;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(15, 111, 115, 0.15);
 }
 
@@ -651,5 +739,10 @@ border: none;
 
 .suggestions li:hover {
   background: #f0f7f7;
+}
+.error {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

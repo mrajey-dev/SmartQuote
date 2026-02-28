@@ -253,7 +253,7 @@ const saveQuotation = async () => {
 .phone {
   width: 100%;
   height: 100%;
-  background: #0F6F73;
+  background: var(--primary);
   border-radius: 0px;
   overflow: hidden;
   position: relative;
@@ -288,7 +288,7 @@ const saveQuotation = async () => {
 }
 
 h2 {
-  color: #0F6F73;
+  color: var(--primary);
   margin-bottom: 20px;
 }
 
@@ -309,7 +309,7 @@ h2 {
 .total {
   text-align: center;
   font-weight: 600;
-  color: #0F6F73;
+  color: var(--primary);
   margin-bottom: 15px;
 }
 
@@ -318,7 +318,7 @@ h2 {
   padding: 12px;
   border-radius: 25px;
   border: none;
-  background: #0F6F73;
+  background: var(--primary);
   color: white;
   font-weight: 500;
   margin-top: 10px;
@@ -328,7 +328,7 @@ h2 {
 .logout {
   text-align: center;
   font-size: 13px;
-  color: #0F6F73;
+  color: var(--primary);
   margin-top: 15px;
   cursor: pointer;
 }

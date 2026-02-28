@@ -10,9 +10,9 @@
       <div class="card">
         <slot />
 
-        <div class="back" @click="$router.push('/home')">
+        <!-- <div class="back" @click="$router.push('/home')">
           ← {{ $t('back') }}
-        </div>
+        </div> -->
       </div>
 
     </div>
@@ -39,7 +39,7 @@ defineProps(["title"])
 .phone {
   width: 100%;
   height: 100%;
-  background: #0F6F73;
+  background: var(--primary);
   border-radius: 0px;
   overflow: hidden;
   position: relative;
@@ -88,7 +88,7 @@ defineProps(["title"])
   padding: 12px;
   border-radius: 25px;
   border: none;
-  background: #0F6F73;
+  background: var(--primary);
   color: white;
   margin-top: 10px;
 }
@@ -97,7 +97,7 @@ defineProps(["title"])
   text-align: center;
   margin-top: 20px;
   font-size: 13px;
-  color: #0F6F73;
+  color: var(--primary);
   cursor: pointer;
 }
 </style>

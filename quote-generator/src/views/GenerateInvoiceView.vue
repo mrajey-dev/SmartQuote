@@ -122,7 +122,7 @@ const generateInvoice = () => {
   margin: 20px 0 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #0F6F73;
+  color: var(--primary);
 }
 
 /* Input Styling */
@@ -176,7 +176,7 @@ textarea {
   margin-top: 8px;
   font-size: 12px;
   font-weight: 500;
-  color: #0F6F73;
+  color: var(--primary);
 }
 
 /* Add Button */
@@ -184,9 +184,9 @@ textarea {
   width: 100%;
   padding: 10px;
   border-radius: 20px;
-  border: 1px dashed #0F6F73;
+  border: 1px dashed var(--primary);
   background: transparent;
-  color: #0F6F73;
+  color: var(--primary);
   margin-bottom: 20px;
   cursor: pointer;
 }
@@ -213,7 +213,7 @@ textarea {
 .summary-row.total {
   font-weight: 600;
   font-size: 15px;
-  color: #0F6F73;
+  color: var(--primary);
 }
 
 /* Button */
@@ -222,7 +222,7 @@ textarea {
   padding: 14px;
   border-radius: 25px;
   border: none;
-  background: linear-gradient(135deg, #0F6F73, #0C5C60);
+  background: linear-gradient(135deg, var(--primary), #0C5C60);
   color: white;
   font-size: 14px;
   font-weight: 500;

@@ -7,7 +7,8 @@ import GenerateQuotationView from "../views/GenerateQuotationView.vue"
 import QuotationListView from "../views/QuotationListView.vue"
 import GenerateInvoiceView from "../views/GenerateInvoiceView.vue"
 import StockManagementView from "../views/StockManagementView.vue"
-
+import axios from "axios"
+const API = "https://products.archenterprises.co.in/api"
 const routes = [
   { 
     path: "/", 
@@ -70,18 +71,52 @@ const router = createRouter({
    ROUTE GUARD
 =========================== */
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
 
   const token = localStorage.getItem("token")
 
-  // If route requires login
-  if (to.meta.requiresAuth && !token) {
-    return next("/")
+  // If route requires authentication
+  if (to.meta.requiresAuth) {
+
+    if (!token) {
+      return next("/")
+    }
+
+    try {
+      await axios.get(API + "/user", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      return next()
+
+    } catch (error) {
+      localStorage.clear()
+      return next("/")
+    }
   }
 
-  // If already logged in and trying to go to login page
-  if (to.meta.guestOnly && token) {
-    return next("/home")
+  // If route is only for guests (login page)
+  if (to.meta.guestOnly) {
+
+    if (!token) {
+      return next()
+    }
+
+    try {
+      await axios.get(API + "/user", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      return next("/home")
+
+    } catch (error) {
+      localStorage.clear()
+      return next()
+    }
   }
 
   next()

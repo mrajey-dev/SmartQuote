@@ -5,51 +5,87 @@
     <h3 class="section-title">
       {{ $t('addUpdateProduct') }}
     </h3>
+<div class="input">
+  <input 
+    v-model="name"
+    maxlength="100"
+    :placeholder="$t('productName')" 
+  />
+</div>
+<p class="error" v-if="errors.name">
+  {{ errors.name }}
+</p>
 
-    <div class="input">
-      <input v-model="name" :placeholder="$t('productName')" />
-    </div>
+   <div class="input">
+  <input 
+    v-model="sku"
+    maxlength="30"
+    :placeholder="$t('skuCode')" 
+  />
+</div>
+<p class="error" v-if="errors.sku">
+  {{ errors.sku }}
+</p>
 
-    <div class="input">
-      <input v-model="sku" :placeholder="$t('skuCode')" />
-    </div>
+   <div class="input">
+  <input 
+    v-model="category"
+    maxlength="50"
+    :placeholder="$t('category')" 
+  />
+</div>
+<p class="error" v-if="errors.category">
+  {{ errors.category }}
+</p>
 
-    <div class="input">
-      <input v-model="category" :placeholder="$t('category')" />
+    <div class="row">
+      <div class="input">
+  <input
+    type="number"
+    min="0"
+    v-model.number="purchasePrice"
+    :placeholder="$t('purchasePrice')"
+  />
+</div>
+<p class="error" v-if="errors.purchasePrice">
+  {{ errors.purchasePrice }}
+</p>
+      <div class="input">
+  <input
+    type="number"
+    min="0"
+    v-model.number="sellingPrice"
+    :placeholder="$t('sellingPrice')"
+  />
+</div>
+<p class="error" v-if="errors.sellingPrice">
+  {{ errors.sellingPrice }}
+</p>
     </div>
 
     <div class="row">
       <div class="input">
-        <input
-          type="number"
-          v-model.number="purchasePrice"
-          :placeholder="$t('purchasePrice')"
-        />
-      </div>
-      <div class="input">
-        <input
-          type="number"
-          v-model.number="sellingPrice"
-          :placeholder="$t('sellingPrice')"
-        />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="input">
-        <input
-          type="number"
-          v-model.number="quantity"
-          :placeholder="$t('stockQuantity')"
-        />
-      </div>
-      <div class="input">
-        <input
-          type="number"
-          v-model.number="lowStockAlert"
-          :placeholder="$t('lowStockAlert')"
-        />
-      </div>
+  <input
+    type="number"
+    min="0"
+    v-model.number="quantity"
+    :placeholder="$t('stockQuantity')"
+  />
+</div>
+<p class="error" v-if="errors.quantity">
+  {{ errors.quantity }}
+</p>
+     <div class="input">
+  <input
+    type="number"
+    min="0"
+    v-model.number="lowStockAlert"
+    :placeholder="$t('lowStockAlert')"
+  />
+</div>
+<p class="error" v-if="errors.lowStockAlert">
+  {{ errors.lowStockAlert }}
+</p>
     </div>
 
     <button class="primary-btn" @click="addProduct">
@@ -111,7 +147,83 @@ import { ref, computed, onMounted } from "vue"
 import api from "@/services/api"
 import BaseLayout from "./components/BaseLayout.vue"
 
+const errors = ref({
+  name: "",
+  sku: "",
+  category: "",
+  purchasePrice: "",
+  sellingPrice: "",
+  quantity: "",
+  lowStockAlert: ""
+})
 
+const validateProduct = () => {
+  let valid = true
+
+  // Reset errors
+  Object.keys(errors.value).forEach(key => {
+    errors.value[key] = ""
+  })
+
+  // Product Name
+  if (!name.value.trim()) {
+    errors.value.name = "Product name is required"
+    valid = false
+  } else if (name.value.length > 100) {
+    errors.value.name = "Maximum 100 characters allowed"
+    valid = false
+  }
+
+  // SKU
+  if (sku.value && sku.value.length > 30) {
+    errors.value.sku = "Maximum 30 characters allowed"
+    valid = false
+  }
+
+  // Category
+  if (category.value && category.value.length > 50) {
+    errors.value.category = "Maximum 50 characters allowed"
+    valid = false
+  }
+
+  // Purchase Price
+  if (purchasePrice.value === null || purchasePrice.value === undefined) {
+    errors.value.purchasePrice = "Purchase price is required"
+    valid = false
+  } else if (purchasePrice.value < 0) {
+    errors.value.purchasePrice = "Cannot be negative"
+    valid = false
+  }
+
+  // Selling Price
+  if (sellingPrice.value === null || sellingPrice.value === undefined) {
+    errors.value.sellingPrice = "Selling price is required"
+    valid = false
+  } else if (sellingPrice.value < purchasePrice.value) {
+    errors.value.sellingPrice = "Selling must be ≥ Purchase"
+    valid = false
+  }
+
+  // Quantity
+  if (quantity.value === null || quantity.value === undefined) {
+    errors.value.quantity = "Quantity required"
+    valid = false
+  } else if (quantity.value < 0) {
+    errors.value.quantity = "Cannot be negative"
+    valid = false
+  }
+
+  // Low Stock Alert
+  if (lowStockAlert.value === null || lowStockAlert.value === undefined) {
+    errors.value.lowStockAlert = "Low stock alert required"
+    valid = false
+  } else if (lowStockAlert.value < 0) {
+    errors.value.lowStockAlert = "Cannot be negative"
+    valid = false
+  }
+
+  return valid
+}
 const name = ref("")
 const sku = ref("")
 const category = ref("")
@@ -158,10 +270,14 @@ const lowStockCount = computed(() => {
 
 const addProduct = async () => {
 
+  if (!validateProduct()) {
+    return
+  }
+
   const productData = {
-    name: name.value,
+    name: name.value.trim(),
     sku: sku.value || "SKU-" + Date.now(),
-    category: category.value,
+    category: category.value.trim(),
     purchase_price: purchasePrice.value,
     selling_price: sellingPrice.value,
     quantity: quantity.value,
@@ -169,9 +285,9 @@ const addProduct = async () => {
   }
 
   if (editIndex.value !== null) {
-await api.put(`/products/${editIndex.value}`, productData)
+    await api.put(`/products/${editIndex.value}`, productData)
   } else {
-   await api.post("/products", productData)
+    await api.post("/products", productData)
   }
 
   await fetchProducts()
@@ -216,7 +332,7 @@ const resetForm = () => {
   margin: 20px 0 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #0F6F73;
+  color: var(--primary);
 }
 
 /* Inputs */
@@ -229,6 +345,7 @@ const resetForm = () => {
 
 .input input {
   border: none;
+  color: var(--primary);
   background: transparent;
   outline: none;
   width: 100%;
@@ -250,7 +367,7 @@ const resetForm = () => {
   padding: 14px;
   border-radius: 25px;
   margin-bottom: 17px;
-  background: linear-gradient(135deg, #0F6F73, #0C5C60);
+  background: var(--primary);
   color: white;
   font-size: 14px;
   font-weight: 500;
@@ -279,11 +396,12 @@ const resetForm = () => {
 
 .product-name {
   font-weight: 600;
+  color: var(--primary);
   font-size: 14px;
 }
 
 .stock-badge {
-  background: #0F6F73;
+  background: var(--primary);
   color: white;
   padding: 4px 10px;
   border-radius: 15px;
@@ -297,7 +415,7 @@ const resetForm = () => {
 .stock-details p {
   font-size: 12px;
   margin: 4px 0;
-  color: #555;
+  color: var(--primary);
 }
 .stock-summary {
   background: #F8FAFA;
@@ -324,5 +442,10 @@ const resetForm = () => {
 .action-row .delete {
   background: #D9534F;
   color: white;
+}
+.error {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

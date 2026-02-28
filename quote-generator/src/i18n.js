@@ -3,7 +3,12 @@ import { createI18n } from "vue-i18n"
 const messages = {
   en: {
     generateQuotation: "Generate Quotation",
-  
+  termsAndConditions: "Terms & Conditions",
+  shopQrTitle: "Your Shop QR Code",
+  close: "Close",
+  shopQrSubtitle: "Scan to make payment or view business",
+  currency: "Currency",
+  hello: "Hello",
     products: "Products",
     subtotal: "Subtotal",
     totalGST: "Total GST",
@@ -130,7 +135,11 @@ back: "Back"
 
   hi: {
     generateQuotation: "कोटेशन बनाएं",
-   
+   termsAndConditions: "नियम और शर्तें",
+   shopQrTitle: "आपकी दुकान का QR कोड",
+shopQrSubtitle: "भुगतान करने या व्यवसाय देखने के लिए स्कैन करें",
+   hello: "नमस्ते",
+   currency: "मुद्रा",
     products: "उत्पाद",
     subtotal: "उप-योग",
     totalGST: "कुल जीएसटी",
@@ -218,6 +227,7 @@ price: "कीमत",
 total: "कुल",
 addProduct: "+ प्रोडक्ट जोड़ें",
 adjustments: "समायोजन",
+close: "बंद करें",
 discountPercent: "छूट %",
 gstPercent: "जीएसटी %",
 subtotal: "उप-योग",
@@ -258,7 +268,11 @@ back: "वापस"
 fr: {
 
 generateQuotation: "Générer un devis",
-
+termsAndConditions: "Conditions générales",
+shopQrTitle: "QR Code de votre boutique",
+shopQrSubtitle: "Scannez pour effectuer un paiement ou voir l'entreprise",
+hello: "Bonjour",
+currency: "Devise",
 products: "Produits",
 subtotal: "Sous-total",
 totalGST: "Total GST",
@@ -285,6 +299,7 @@ basicInformation: "Informations de base",
 contactDetails: "Détails de contact",
 additionalInfo: "Informations supplémentaires",
 customerName: "Nom du client",
+close: "Fermer",
 companyNameOptional: "Nom de l'entreprise (Optionnel)",
 phoneNumber: "Numéro de téléphone",
 emailAddress: "Adresse e-mail",
@@ -396,7 +411,12 @@ back: "Retour"
  ja: {
 
 generateQuotation: "見積を作成",
-
+close: "閉じる",
+termsAndConditions: "利用規約",
+shopQrTitle: "あなたのショップQRコード",
+shopQrSubtitle: "支払いをする、またはビジネス情報を見るにはスキャンしてください",
+hello: "こんにちは",
+currency: "通貨",
 products: "商品",
 subtotal: "小計",
 totalGST: "GST合計",
@@ -531,13 +551,19 @@ back: "戻る"
 },
 
   mr: {
+    termsAndConditions: "अटी आणि शर्ती",
+    hello: "नमस्कार",
     generateQuotation: "कोटेशन तयार करा",
+    shopQrTitle: "तुमच्या दुकानाचा QR कोड",
+shopQrSubtitle: "पेमेंट करण्यासाठी किंवा व्यवसाय पाहण्यासाठी स्कॅन करा",
+    currency: "चलन",
     customer: "ग्राहक",
     products: "उत्पाद",
     subtotal: "उपएकूण",
     totalGST: "एकूण GST",
     grandTotal: "एकूण रक्कम",
     addProduct: "उत्पादन जोडा",
+    close: "बंद करा",
      welcome: "स्वागत आहे!",
   manageBusiness: "आपला व्यवसाय व्यवस्थापित करा",
   discover: "शोधा",
