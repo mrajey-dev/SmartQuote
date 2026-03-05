@@ -8,6 +8,8 @@ import QuotationListView from "../views/QuotationListView.vue"
 import GenerateInvoiceView from "../views/GenerateInvoiceView.vue"
 import StockManagementView from "../views/StockManagementView.vue"
 import axios from "axios"
+import LoginSuccess from "@/views/LoginSuccess.vue"
+
 const API = "https://products.archenterprises.co.in/api"
 const routes = [
   { 
@@ -18,6 +20,10 @@ const routes = [
 {
   path: "/change-password",
   component: () => import("@/views/ChangePassword.vue")
+},
+{
+  path: "/login-success",
+  component: LoginSuccess,
 },
   { 
     path: "/home",
@@ -54,6 +60,10 @@ const routes = [
     component: QuotationListView,
     meta: { requiresAuth: true }
   },
+  {
+  path: "/google-success",
+  component: () => import("../views/GoogleSuccess.vue")
+},
 
   { 
     path: "/stock",

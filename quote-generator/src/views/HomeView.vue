@@ -33,7 +33,7 @@
     <div v-if="showDropdown" class="dropdown">
       <div class="user-info">
         <strong>{{ $t('hello') }} 👋</strong>
-        <small>{{ user?.email }}</small>
+        <small>{{ user?.name }}</small>
       </div>
 
       <div class="divider"></div>
